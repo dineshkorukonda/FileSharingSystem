@@ -1,58 +1,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiUpload, FiFolder, FiShare2, FiSearch } from 'react-icons/fi';
-import './QuickActions.css';
+import { Upload, Folder, Share2, Search } from 'lucide-react';
+
+const actions = [
+  { icon: Upload, label: 'Upload', description: 'Add a file', path: '/dashboard/upload' },
+  { icon: Folder, label: 'Files', description: 'Browse your drive', path: '/dashboard/files' },
+  { icon: Share2, label: 'Shared', description: 'Manage access', path: '/dashboard/shared' },
+  { icon: Search, label: 'Find', description: 'Open the file list', path: '/dashboard/files' },
+];
 
 const QuickActions = () => {
-    const actions = [
-        {
-            icon: <FiUpload />,
-            label: 'Upload File',
-            color: '#3b82f6',
-            path: '/dashboard/upload'
-        },
-        {
-            icon: <FiFolder />,
-            label: 'View All Files',
-            color: '#10b981',
-            path: '/dashboard/files'
-        },
-        {
-            icon: <FiShare2 />,
-            label: 'Share Files',
-            color: '#f59e0b',
-            path: '/dashboard/shared'
-        },
-        {
-            icon: <FiSearch />,
-            label: 'Search Files',
-            color: '#8b5cf6',
-            path: '/dashboard/files'
-        }
-    ];
-
-    return (
-        <div className="quick-actions">
-            {actions.map((action, index) => (
-                <Link 
-                    key={index} 
-                    to={action.path}
-                    className="quick-action-item"
-                >
-                    <div 
-                        className="quick-action-icon" 
-                        style={{ 
-                            backgroundColor: `${action.color}15`,
-                            color: action.color 
-                        }}
-                    >
-                        {action.icon}
-                    </div>
-                    <span className="quick-action-label">{action.label}</span>
-                </Link>
-            ))}
-        </div>
-    );
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {actions.map((action) => {
+        const Icon = action.icon;
+        return (
+          <Link key={action.label} to={action.path} className="card bg-base-100 border border-base-300 hover:border-base-content/30">
+            <div className="card-body p-4">
+              <Icon className="h-4 w-4" />
+              <div className="font-medium text-sm mt-2">{action.label}</div>
+              <div className="text-xs text-base-content/60">{action.description}</div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
 };
 
-export default QuickActions; 
+export default QuickActions;

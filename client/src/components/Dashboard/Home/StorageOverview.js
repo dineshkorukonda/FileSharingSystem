@@ -1,91 +1,66 @@
 import React from 'react';
-import { FiHardDrive } from 'react-icons/fi';
-import './StorageOverview.css';
 
 const StorageOverview = ({ storage, isLoading }) => {
-    // Convert bytes to readable format
-    const formatBytes = (bytes, decimals = 2) => {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
-    };
-    
-    // Calculate percentage
-    const calculatePercentage = () => {
-        if (storage.total === 0) return 0;
-        return Math.min(100, Math.round((storage.used / storage.total) * 100));
-    };
-    
-    const percentage = calculatePercentage();
-    
-    if (isLoading) {
-        return (
-            <div className="loading-state">
-                <div className="loading-spinner"></div>
-                <span>Loading storage data...</span>
+  const formatBytes = (bytes, decimals = 1) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  };
+
+  const percentage = !storage || !storage.total
+    ? 0
+    : Math.min(100, Math.round((storage.used / storage.total) * 100));
+  const freeStorage = Math.max(0, (storage?.total || 1000 * 1024 * 1024) - (storage?.used || 0));
+
+  return (
+    <div className="card bg-base-100 border border-base-300">
+      <div className="card-body p-4">
+        <h2 className="text-sm font-medium border-b border-base-300 pb-2">Storage</h2>
+        {isLoading ? (
+          <p className="text-sm text-base-content/60 mt-3">Loading</p>
+        ) : (
+          <div className="mt-3 space-y-3 text-sm">
+            <div className="flex items-center gap-4">
+              <div
+                className="grid h-[120px] w-[120px] place-items-center rounded-full"
+                style={{
+                  background: `conic-gradient(#2563eb ${percentage * 3.6}deg, #e2e8f0 0deg)`,
+                }}
+              >
+                <div className="grid h-[84px] w-[84px] place-items-center rounded-full bg-white text-center">
+                  <div>
+                    <div className="font-display text-lg font-semibold">{formatBytes(storage?.used || 0)}</div>
+                    <div className="text-[11px] text-slate-400">{percentage}%</div>
+                  </div>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">{formatBytes(storage?.used || 0)} used</div>
+                <div className="text-slate-500">of {formatBytes(storage?.total || 1000 * 1024 * 1024)}</div>
+                <progress className="progress progress-primary mt-3 w-full" value={percentage} max="100" />
+              </div>
             </div>
-        );
-    }
-    
-    return (
-        <div className="storage-overview">
-            <div className="storage-usage">
-                <div className="storage-circle-container">
-                    <div className="storage-circle">
-                        <div 
-                            className="storage-circle-fill"
-                            style={{ 
-                                background: `conic-gradient(#3b82f6 ${percentage * 3.6}deg, #e2e8f0 0deg)` 
-                            }}
-                        >
-                            <div className="storage-circle-center">
-                                <FiHardDrive size={24} />
-                                <span className="storage-percentage">{percentage}%</span>
-                                <span className="storage-percentage-used">used</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="storage-details">
-                    <div className="storage-detail-item">
-                        <span className="storage-detail-label">Used</span>
-                        <span className="storage-detail-value">{formatBytes(storage.used)}</span>
-                    </div>
-                    <div className="storage-detail-item">
-                        <span className="storage-detail-label">Free</span>
-                        <span className="storage-detail-value">{formatBytes(storage.total - storage.used)}</span>
-                    </div>
-                    <div className="storage-detail-item">
-                        <span className="storage-detail-label">Total</span>
-                        <span className="storage-detail-value">{formatBytes(storage.total)}</span>
-                    </div>
-                </div>
+            <div className="flex justify-between text-base-content/70">
+              <span>Free {formatBytes(freeStorage)}</span>
+              <span>Limit {formatBytes(storage?.total || 0)}</span>
             </div>
-            
-            {storage.fileTypes && storage.fileTypes.length > 0 && (
-                <div className="storage-by-type">
-                    <h3 className="storage-section-title">Storage by file type</h3>
-                    
-                    {storage.fileTypes.map((fileType, index) => (
-                        <div key={index} className="file-type-item">
-                            <div className="file-type-info">
-                                <span className="file-type-name">{fileType.type}</span>
-                                <span className="file-type-count">{fileType.count} files</span>
-                            </div>
-                            <div className="file-type-size">
-                                {formatBytes(fileType.size)}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+            {storage?.fileTypes?.length > 0 && (
+              <ul className="border-t border-base-300 pt-2 space-y-1">
+                {storage.fileTypes.slice(0, 4).map((fileType, index) => (
+                  <li key={index} className="flex justify-between text-base-content/80">
+                    <span className="capitalize">{fileType.type || 'other'} ({fileType.count})</span>
+                    <span>{formatBytes(fileType.size)}</span>
+                  </li>
+                ))}
+              </ul>
             )}
-        </div>
-    );
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default StorageOverview; 
+export default StorageOverview;

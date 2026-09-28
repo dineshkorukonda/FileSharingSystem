@@ -1,93 +1,71 @@
 import React, { useState, useCallback } from 'react';
-import { FiUpload, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import UploadArea from '../../components/Upload/UploadArea';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from '../../context/ThemeContext';
 
 const UploadPage = () => {
-    const [recentUploads, setRecentUploads] = useState([]);
-    
-    // Callback to be passed to UploadArea to track successful uploads
-    const onUploadSuccess = useCallback((fileInfo) => {
-        setRecentUploads(prev => [fileInfo, ...prev].slice(0, 5)); // Keep only the 5 most recent
-        toast.success(`File "${fileInfo.name}" uploaded successfully!`, {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-        });
-    }, []);
-    
-    // Callback for when an upload fails
-    const onUploadError = useCallback((error, fileName) => {
-        toast.error(`Failed to upload "${fileName}": ${error}`, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-        });
-    }, []);
+  const [recentUploads, setRecentUploads] = useState([]);
+  const { isDark } = useTheme();
 
-    return (
-        <div className="dashboard-content-area">
-            <div className="dashboard-page-header">
-                <div className="page-header-icon">
-                    <FiUpload size={24} />
-                </div>
-                <h1 className="page-header-title">Upload Files</h1>
-                <p className="page-header-description">
-                    Upload and share files with others
-                </p>
+  const onUploadSuccess = useCallback((fileInfo) => {
+    setRecentUploads((prev) => [fileInfo, ...prev].slice(0, 5));
+    toast.success(`"${fileInfo.name}" uploaded`);
+  }, []);
+
+  const onUploadError = useCallback((error, fileName) => {
+    toast.error(`Failed to upload "${fileName}": ${error}`);
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="border-b border-base-300 pb-3">
+        <div className="text-sm text-slate-400">Workspace / Upload</div>
+        <h1 className="font-display text-[28px] font-semibold leading-9">Upload hub</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Drag a file here. The limit is 25MB.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <UploadArea onUploadSuccess={onUploadSuccess} onUploadError={onUploadError} />
+          {recentUploads.length > 0 && (
+            <div className="card bg-base-100 border border-base-300">
+              <div className="card-body p-4">
+                <h2 className="text-sm font-medium border-b border-base-300 pb-2">
+                  This session
+                </h2>
+                <ul className="mt-3 divide-y divide-base-300 text-sm">
+                  {recentUploads.map((file, index) => (
+                    <li key={index} className="flex items-center justify-between py-2 gap-3">
+                      <span className="truncate">{file.name}</span>
+                      <span className="text-base-content/60 text-xs shrink-0">
+                        {new Date(file.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            
-            <div className="upload-page-content">
-                <UploadArea 
-                    onUploadSuccess={onUploadSuccess}
-                    onUploadError={onUploadError}
-                />
-                
-                {recentUploads.length > 0 && (
-                    <div className="recent-uploads-section">
-                        <h2 className="section-title">Recently Uploaded</h2>
-                        <div className="recent-uploads-list">
-                            {recentUploads.map((file, index) => (
-                                <div key={index} className="recent-upload-item">
-                                    <div className="upload-status-icon">
-                                        <FiCheckCircle size={18} color="#10b981" />
-                                    </div>
-                                    <div className="recent-upload-info">
-                                        <div className="recent-upload-name">{file.name}</div>
-                                        <div className="recent-upload-time">
-                                            {new Date(file.timestamp).toLocaleTimeString()}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                
-                <div className="upload-tips">
-                    <h3 className="tips-title">
-                        <FiAlertCircle size={18} className="tips-icon" />
-                        Upload Tips
-                    </h3>
-                    <ul className="tips-list">
-                        <li>Maximum file size is 25MB</li>
-                        <li>Supported file types include PDF, images, documents, and more</li>
-                        <li>Files are encrypted during transfer for security</li>
-                        <li>You can share your files after uploading from the Files page</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <ToastContainer />
+          )}
         </div>
-    );
+
+        <div className="card bg-base-100 border border-base-300 h-fit">
+          <div className="card-body p-4 text-sm">
+            <h2 className="font-medium border-b border-base-300 pb-2">Limits</h2>
+            <ul className="mt-3 space-y-2 text-base-content/80">
+              <li>25MB per file.</li>
+              <li>PDF, documents, spreadsheets, images, and archives.</li>
+              <li>Share a file from the Files page after it uploads.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <ToastContainer position="bottom-right" theme={isDark ? 'dark' : 'light'} />
+    </div>
+  );
 };
 
-export default UploadPage; 
+export default UploadPage;

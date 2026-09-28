@@ -1,22 +1,18 @@
 import React from 'react';
 import FilesList from '../../components/Files/FilesList';
-import { FiFile } from 'react-icons/fi';
 
 const FilesPage = () => {
-    return (
-        <div className="dashboard-content-area">
-            <div className="dashboard-page-header">
-                <div className="page-header-icon">
-                    <FiFile size={24} />
-                </div>
-                <h1 className="page-header-title">My Files</h1>
-                <p className="page-header-description">
-                    View and manage all your uploaded files
-                </p>
-            </div>
-            <FilesList />
-        </div>
-    );
+  return (
+    <div className="space-y-6">
+      <div className="border-b border-base-300 pb-3">
+        <h1 className="font-display text-[28px] font-semibold leading-9">My Drive</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Browse, preview, star, and share your files.
+        </p>
+      </div>
+      <FilesList />
+    </div>
+  );
 };
 
-export default FilesPage; 
+export default FilesPage;

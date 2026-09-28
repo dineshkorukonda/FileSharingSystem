@@ -1,49 +1,49 @@
-import './Footer.css';
-import { FiUploadCloud } from 'react-icons/fi';
+import React from 'react';
 
 export default function Footer() {
-    return (
-        <footer className="footer">
-            <div className="footer-content">
-                <div className="footer-brand">
-                    <div className="footer-logo">
-                        <FiUploadCloud className="footer-logo-icon" />
-                        <span>DocuTrust</span>
-                    </div>
-                    <p className="footer-description">
-                        Secure file sharing platform for teams and individuals.
-                    </p>
-                </div>
-
-                <div className="footer-links">
-                    <div className="footer-section">
-                        <h4 className="footer-heading">Product</h4>
-                        <ul>
-                            <li><a href="#features">Features</a></li>
-                            <li><a href="#security">Security</a></li>
-                            <li><a href="#enterprise">Enterprise</a></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer-section">
-                        <h4 className="footer-heading">Support</h4>
-                        <ul>
-                            <li><a href="#help">Help Center</a></li>
-                            <li><a href="mailto:support@cloudshare.com">Email Support</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="footer-bottom">
-                <p className="copyright">
-                    © {new Date().getFullYear()} CloudShare. All rights reserved.
-                </p>
-                <div className="legal-links">
-                    <a href="#privacy">Privacy</a>
-                    <a href="#terms">Terms</a>
-                </div>
-            </div>
-        </footer>
-    );
-} 
+  return (
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
+        <div>
+          <div className="font-display text-base font-semibold text-slate-900">File Sharing</div>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Store files, share them with another account, and open PDFs in the browser.
+          </p>
+        </div>
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Product</div>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
+            <a href="#features" className="hover:text-slate-900">Features</a>
+            <a href="/dashboard/files" className="hover:text-slate-900">My drive</a>
+            <a href="/dashboard/upload" className="hover:text-slate-900">Upload</a>
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Account</div>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
+            <a href="/auth" className="hover:text-slate-900">Sign in</a>
+            <a href="/reset-password" className="hover:text-slate-900">Reset password</a>
+            <a href="/dashboard/settings" className="hover:text-slate-900">Settings</a>
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Source</div>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
+            <a
+              href="https://github.com/dineshkorukonda/FileSharingSystem"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-900"
+            >
+              GitHub
+            </a>
+            <a href="#api" className="hover:text-slate-900">API example</a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 px-4 py-4 text-center text-xs text-slate-400 sm:px-6">
+        File Sharing System
+      </div>
+    </footer>
+  );
+}

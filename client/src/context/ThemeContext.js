@@ -5,22 +5,37 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState('light');
 
+    const applyTheme = (targetTheme) => {
+        setTheme(targetTheme);
+        localStorage.setItem('theme', targetTheme);
+        document.documentElement.setAttribute('data-theme', targetTheme);
+        if (targetTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    };
+
     // Initialize theme from localStorage on component mount
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        localStorage.setItem('theme', 'light');
+        applyTheme('light');
     }, []);
 
     // Function to toggle theme
     const toggleTheme = (newTheme) => {
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
+        if (!newTheme) {
+            const nextTheme = theme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        } else {
+            applyTheme(newTheme);
+        }
     };
 
+    const isDark = theme === 'dark';
+
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, isDark, toggleTheme }}>
             {children}
         </ThemeContext.Provider>
     );
@@ -33,4 +48,4 @@ export const useTheme = () => {
         throw new Error('useTheme must be used within a ThemeProvider');
     }
     return context;
-}; 
+};

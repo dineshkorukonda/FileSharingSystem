@@ -1,240 +1,132 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { FiFileText, FiImage, FiFile, FiDownload, FiEye, FiStar, FiTrash2, FiFilter } from 'react-icons/fi';
-import './FileSearchResults.css';
 import { downloadFile } from '../../utils/fileUtils';
 
-const FileSearchResults = ({ results, isLoading, onClose }) => {
-    const [activeFilter, setActiveFilter] = useState('all');
-    
-    // Get unique file types from results
-    const getUniqueTypes = () => {
-        const types = results.map(file => {
-            if (!file.fileType) return 'other';
-            
-            if (file.fileType.includes('pdf')) return 'pdf';
-            if (file.fileType.includes('image')) return 'image';
-            if (file.fileType.includes('word')) return 'document';
-            if (file.fileType.includes('sheet') || file.fileType.includes('excel')) return 'spreadsheet';
-            return 'other';
-        });
-        
-        return ['all', ...new Set(types)];
-    };
-    
-    // Filter results by type
-    const getFilteredResults = () => {
-        if (activeFilter === 'all') return results;
-        
-        return results.filter(file => {
-            if (!file.fileType) return activeFilter === 'other';
-            
-            switch (activeFilter) {
-                case 'pdf':
-                    return file.fileType.includes('pdf');
-                case 'image':
-                    return file.fileType.includes('image');
-                case 'document':
-                    return file.fileType.includes('word') || file.fileType.includes('document');
-                case 'spreadsheet':
-                    return file.fileType.includes('sheet') || file.fileType.includes('excel');
-                case 'other':
-                    return !file.fileType.includes('pdf') && 
-                           !file.fileType.includes('image') && 
-                           !file.fileType.includes('word') && 
-                           !file.fileType.includes('document') && 
-                           !file.fileType.includes('sheet') && 
-                           !file.fileType.includes('excel');
-                default:
-                    return true;
-            }
-        });
-    };
-    
-    // Get display name for file type
-    const getTypeDisplayName = (type) => {
-        switch (type) {
-            case 'all': return 'All';
-            case 'pdf': return 'PDF';
-            case 'image': return 'Images';
-            case 'document': return 'Documents';
-            case 'spreadsheet': return 'Spreadsheets';
-            case 'other': return 'Other';
-            default: return type.charAt(0).toUpperCase() + type.slice(1);
-        }
-    };
+const FileSearchResults = ({ results = [], isLoading, onClose }) => {
+  const [activeFilter, setActiveFilter] = useState('all');
 
-    if (isLoading) {
+  const getUniqueTypes = () => {
+    const types = results.map((file) => {
+      if (!file.fileType) return 'other';
+      if (file.fileType.includes('pdf')) return 'pdf';
+      if (file.fileType.includes('image')) return 'image';
+      if (file.fileType.includes('word') || file.fileType.includes('document')) return 'document';
+      if (file.fileType.includes('sheet') || file.fileType.includes('excel')) return 'spreadsheet';
+      return 'other';
+    });
+    return ['all', ...new Set(types)];
+  };
+
+  const matchesFilter = (file, filter) => {
+    if (filter === 'all') return true;
+    if (!file.fileType) return filter === 'other';
+    switch (filter) {
+      case 'pdf':
+        return file.fileType.includes('pdf');
+      case 'image':
+        return file.fileType.includes('image');
+      case 'document':
+        return file.fileType.includes('word') || file.fileType.includes('document');
+      case 'spreadsheet':
+        return file.fileType.includes('sheet') || file.fileType.includes('excel');
+      case 'other':
         return (
-            <div className="search-results-container">
-                <div className="search-results-loading">
-                    <div className="search-spinner"></div>
-                    <span>Searching files...</span>
-                </div>
-            </div>
+          !file.fileType.includes('pdf')
+          && !file.fileType.includes('image')
+          && !file.fileType.includes('word')
+          && !file.fileType.includes('document')
+          && !file.fileType.includes('sheet')
+          && !file.fileType.includes('excel')
         );
+      default:
+        return true;
     }
+  };
 
-    // Function to get file icon based on file type
-    const getFileIcon = (fileType) => {
-        if (!fileType) return <FiFile size={18} />;
-        
-        if (fileType.includes('image')) {
-            return <FiImage size={18} style={{ color: '#8b5cf6' }} />;
-        } else if (fileType.includes('pdf')) {
-            return <FiFileText size={18} style={{ color: '#ef4444' }} />;
-        } else if (fileType.includes('word') || fileType.includes('document')) {
-            return <FiFileText size={18} style={{ color: '#3b82f6' }} />;
-        } else if (fileType.includes('sheet') || fileType.includes('excel')) {
-            return <FiFileText size={18} style={{ color: '#10b981' }} />;
-        } else {
-            return <FiFile size={18} style={{ color: '#64748b' }} />;
-        }
-    };
-    
-    // Function to format file size
-    const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    };
-    
-    // Function to format date as time ago
-    const formatDate = (dateString) => {
-        try {
-            return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-        } catch (error) {
-            return 'Invalid date';
-        }
-    };
+  const labelFor = (type) => {
+    const names = { all: 'All', pdf: 'PDFs', image: 'Images', document: 'Docs', spreadsheet: 'Sheets', other: 'Other' };
+    return names[type] || type;
+  };
 
-    const handleFileClick = (file) => {
-        // Close the search results when a file is clicked
-        onClose();
-        
-        // Navigate to the file (you could also implement preview here)
-        window.location.href = `/dashboard/files?selected=${file.id}`;
-    };
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
-    const handleDownload = (e, file) => {
-        e.stopPropagation(); // Prevent the file click event
-        downloadFile(file);
-    };
-
-    const handleView = (e, file) => {
-        e.stopPropagation(); // Prevent the file click event
-        window.open(`http://localhost:8080/api/files/pdf/${file.id}`, '_blank');
-    };
-
-    if (results.length === 0) {
-        return (
-            <div className="search-results-container">
-                <div className="search-results-empty">
-                    <FiFile size={40} className="search-empty-icon" />
-                    <p>No matching files found</p>
-                    <p className="search-subtext">Try different keywords or check your files</p>
-                </div>
-            </div>
-        );
+  const formatDate = (dateString) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch {
+      return 'Recently';
     }
-    
-    const uniqueTypes = getUniqueTypes();
-    const filteredResults = getFilteredResults();
+  };
 
-    return (
-        <div className="search-results-container">
-            <div className="search-results-header">
-                <div className="search-results-title">Search Results</div>
-                <div className="search-results-count">{results.length} files found</div>
+  if (isLoading) {
+    return <p className="text-sm text-base-content/70 p-2">Searching</p>;
+  }
+
+  if (results.length === 0) {
+    return <p className="text-sm text-base-content/70 p-2">No matching files.</p>;
+  }
+
+  const uniqueTypes = getUniqueTypes();
+  const filteredResults = results.filter((file) => matchesFilter(file, activeFilter));
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 text-sm">
+        <span>{results.length} results</span>
+        {uniqueTypes.length > 1 && (
+          <div className="flex gap-1 flex-wrap justify-end">
+            {uniqueTypes.map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={`btn btn-xs ${activeFilter === type ? 'btn-active' : 'btn-ghost'}`}
+                onClick={() => setActiveFilter(type)}
+              >
+                {labelFor(type)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <ul className="max-h-80 overflow-y-auto divide-y divide-base-300">
+        {filteredResults.map((file) => (
+          <li key={file.id} className="py-2 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              className="text-left min-w-0"
+              onClick={() => {
+                onClose && onClose();
+                window.location.href = `/dashboard/files?selected=${file.id}`;
+              }}
+            >
+              <div className="text-sm truncate">{file.fileName || file.originalName}</div>
+              <div className="text-xs text-base-content/60">
+                {formatFileSize(file.fileSize)} · {formatDate(file.uploadDate || file.sharedDate)}
+              </div>
+            </button>
+            <div className="shrink-0">
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs"
+                onClick={() => window.open(`http://localhost:8080/api/files/download/${file.id}`, '_blank')}
+              >
+                View
+              </button>
+              <button type="button" className="btn btn-ghost btn-xs" onClick={() => downloadFile(file)}>
+                Download
+              </button>
             </div>
-            
-            {uniqueTypes.length > 1 && (
-                <div className="search-filter-bar">
-                    <div className="filter-label">
-                        <FiFilter size={14} /> Filter by type:
-                    </div>
-                    <div className="filter-options">
-                        {uniqueTypes.map(type => (
-                            <button
-                                key={type}
-                                className={`filter-option ${activeFilter === type ? 'active' : ''}`}
-                                onClick={() => setActiveFilter(type)}
-                            >
-                                {getTypeDisplayName(type)}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-            
-            <div className="search-results-list">
-                {filteredResults.map((file) => (
-                    <div 
-                        key={file.id} 
-                        className="search-result-item"
-                        onClick={() => handleFileClick(file)}
-                    >
-                        <div className="search-result-icon">
-                            {getFileIcon(file.fileType)}
-                        </div>
-                        <div className="search-result-details">
-                            <div className="search-result-name">{file.fileName || file.originalName}</div>
-                            <div className="search-result-meta">
-                                <span className="search-result-size">{formatFileSize(file.fileSize)}</span>
-                                <span className="search-result-separator">•</span>
-                                <span className="search-result-modified">{formatDate(file.uploadDate || file.sharedDate)}</span>
-                                {file.isStarred && (
-                                    <>
-                                        <span className="search-result-separator">•</span>
-                                        <span className="search-result-starred">
-                                            <FiStar size={12} /> Starred
-                                        </span>
-                                    </>
-                                )}
-                                {file.isShared && (
-                                    <>
-                                        <span className="search-result-separator">•</span>
-                                        <span className="search-result-shared">
-                                            Shared by {file.ownerName || 'Owner'}
-                                        </span>
-                                    </>
-                                )}
-                                {file.isOwned && !file.isShared && (
-                                    <>
-                                        <span className="search-result-separator">•</span>
-                                        <span className="search-result-owned">
-                                            Owned by you
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        <div className="search-result-actions">
-                            <button 
-                                className="search-action-button view"
-                                onClick={(e) => handleView(e, file)}
-                                title="View"
-                            >
-                                <FiEye size={16} />
-                            </button>
-                            <button 
-                                className="search-action-button download"
-                                onClick={(e) => handleDownload(e, file)}
-                                title="Download"
-                            >
-                                <FiDownload size={16} />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
-export default FileSearchResults; 
+export default FileSearchResults;
