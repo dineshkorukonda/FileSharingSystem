@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { CloudUpload } from 'lucide-react';
 
 const UploadArea = ({ onUploadSuccess, onUploadError }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -133,8 +134,8 @@ const UploadArea = ({ onUploadSuccess, onUploadError }) => {
   return (
     <div className="space-y-3">
       <div
-        className={`border border-dashed border-base-300 bg-base-100 p-10 text-center min-h-[220px] flex flex-col items-center justify-center ${
-          isDragging ? 'border-base-content bg-base-200' : ''
+        className={`flex min-h-[280px] flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center ${
+          isDragging ? 'border-[#2563eb] bg-blue-50' : 'border-[#2563eb]/50 bg-[#eff6ff]'
         } ${isUploading ? 'pointer-events-none' : 'cursor-pointer'}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -151,9 +152,12 @@ const UploadArea = ({ onUploadSuccess, onUploadError }) => {
 
         {!selectedFile ? (
           <div className="space-y-2">
-            <div className="font-medium">Drop a file here or choose one</div>
-            <p className="text-sm text-base-content/60">PDF, images, documents, archives. 25MB max.</p>
-            <span className="btn btn-sm mt-2">Choose file</span>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#2563eb] shadow-sm">
+              <CloudUpload className="h-7 w-7" />
+            </div>
+            <div className="font-display text-lg font-semibold text-slate-900">Drag and drop a file here</div>
+            <p className="text-sm text-slate-500">PDF, images, documents, and archives. 25MB max.</p>
+            <span className="btn btn-primary btn-sm mt-2 rounded-full">Choose file</span>
           </div>
         ) : (
           <div className="w-full max-w-md text-left" onClick={(e) => e.stopPropagation()}>

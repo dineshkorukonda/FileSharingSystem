@@ -124,7 +124,7 @@ const ProfileForm = ({ initialProfile, onSave, onSavePassword, loading, loadingP
             <img
               src={getProfileImageUrl(previewUrl)}
               alt=""
-              className="h-16 w-16 object-cover bg-base-200"
+              className="h-16 w-16 rounded-full object-cover bg-slate-100"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = defaultAvatar;

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useTheme } from '../../context/ThemeContext';
 
 const PasswordResetPage = () => {
   const [searchParams] = useSearchParams();
@@ -18,7 +17,6 @@ const PasswordResetPage = () => {
   const [resetRequested, setResetRequested] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
 
-  const { isDark, toggleTheme } = useTheme();
   const isResetMode = !!token;
 
   useEffect(() => {
@@ -99,14 +97,6 @@ const PasswordResetPage = () => {
           <button type="button" onClick={() => navigate('/auth')} className="btn btn-ghost btn-sm gap-2">
             <ArrowLeft className="h-4 w-4" />
             Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => toggleTheme()}
-            className="btn btn-ghost btn-sm btn-square"
-            aria-label="Toggle theme"
-          >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
         </div>
       </header>
@@ -207,7 +197,7 @@ const PasswordResetPage = () => {
         </div>
       </main>
 
-      <ToastContainer position="bottom-right" theme={isDark ? 'dark' : 'light'} />
+      <ToastContainer position="bottom-right" theme="light" />
     </div>
   );
 };

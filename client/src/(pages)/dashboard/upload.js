@@ -20,9 +20,10 @@ const UploadPage = () => {
   return (
     <div className="space-y-6">
       <div className="border-b border-base-300 pb-3">
-        <h1 className="text-2xl font-semibold">Upload</h1>
-        <p className="text-sm text-base-content/70 mt-1">
-          Add a file. The limit is 25MB.
+        <div className="text-sm text-slate-400">Workspace / Upload</div>
+        <h1 className="font-display text-[28px] font-semibold leading-9">Upload hub</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Drag a file here. The limit is 25MB.
         </p>
       </div>
 

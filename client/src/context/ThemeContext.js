@@ -18,9 +18,8 @@ export const ThemeProvider = ({ children }) => {
 
     // Initialize theme from localStorage on component mount
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        applyTheme(savedTheme);
+        localStorage.setItem('theme', 'light');
+        applyTheme('light');
     }, []);
 
     // Function to toggle theme

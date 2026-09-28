@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Eye, Star, Share2, LayoutGrid, List, Trash2 } from 'lucide-react';
+import { Download, Eye, Star, Share2, LayoutGrid, List, Trash2, Info, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import PDFViewer from './PDFViewer';
 import ShareModal from './ShareModal';
@@ -25,6 +25,7 @@ const FilesList = () => {
   const [starredFiles, setStarredFiles] = useState([]);
   const [sharingFile, setSharingFile] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [detailsFile, setDetailsFile] = useState(null);
 
   useEffect(() => {
     fetchFiles();
@@ -205,12 +206,35 @@ const FilesList = () => {
       return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
     });
 
-  const sortMark = (field) => (sortField === field ? (sortDirection === 'asc' ? ' up' : ' down') : '');
+  const sortMark = (field) => (sortField === field ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : '');
+
+  const fileTone = (file) => {
+    const type = file.fileType || '';
+    const name = file.originalName || file.fileName || '';
+    const ext = (name.includes('.') ? name.split('.').pop() : 'FILE').slice(0, 4).toUpperCase();
+    if (type.includes('pdf')) return { label: 'PDF', className: 'bg-rose-50 text-rose-600' };
+    if (type.includes('sheet') || type.includes('excel') || type.includes('csv')) {
+      return { label: ext, className: 'bg-teal-50 text-teal-700' };
+    }
+    if (type.startsWith('image/') || type.startsWith('video/') || type.startsWith('audio/')) {
+      return { label: ext, className: 'bg-violet-50 text-violet-600' };
+    }
+    if (type.includes('zip') || type.includes('compressed')) {
+      return { label: ext, className: 'bg-amber-50 text-amber-700' };
+    }
+    return { label: ext, className: 'bg-blue-50 text-blue-700' };
+  };
+
+  const accessPill = (file) => (
+    <span className={`sv-pill ${file.isPublic ? 'bg-teal-500/10 text-teal-700' : 'bg-amber-500/10 text-amber-800'}`}>
+      {file.isPublic ? 'Public' : 'Private'}
+    </span>
+  );
 
   const actions = (file) => (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
       <button type="button" className="btn btn-ghost btn-xs btn-square" title="Star" onClick={() => handleToggleStar(file.id)}>
-        <Star className={`h-3.5 w-3.5 ${starredFiles.includes(file.id) ? 'fill-current' : ''}`} />
+        <Star className={`h-3.5 w-3.5 ${starredFiles.includes(file.id) ? 'fill-amber-400 text-amber-500' : ''}`} />
       </button>
       <button type="button" className="btn btn-ghost btn-xs btn-square" title="Preview" onClick={() => handleViewFile(file)}>
         <Eye className="h-3.5 w-3.5" />
@@ -220,6 +244,9 @@ const FilesList = () => {
       </button>
       <button type="button" className="btn btn-ghost btn-xs btn-square" title="Download" onClick={() => downloadFile(file)}>
         <Download className="h-3.5 w-3.5" />
+      </button>
+      <button type="button" className="btn btn-ghost btn-xs btn-square" title="Details" onClick={() => setDetailsFile(file)}>
+        <Info className="h-3.5 w-3.5" />
       </button>
       <button
         type="button"
@@ -313,71 +340,115 @@ const FilesList = () => {
         </div>
       </div>
 
-      {filteredFiles.length === 0 ? (
-        <div className="border border-base-300 bg-base-100 p-10 text-center">
-          <p className="font-medium">No files found</p>
-          <p className="text-sm text-base-content/70 mt-1">
-            {searchQuery ? `Nothing matches "${searchQuery}".` : 'Upload a file to get started.'}
-          </p>
-          {!searchQuery && (
-            <a href="/dashboard/upload" className="btn btn-primary btn-sm mt-4">Upload</a>
-          )}
-        </div>
-      ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredFiles.map((file) => (
-            <div key={file.id} className="card bg-base-100 border border-base-300">
-              <div className="card-body p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <button type="button" className="text-left font-medium truncate" onClick={() => handleViewFile(file)}>
-                    {file.originalName || file.fileName}
-                  </button>
-                  <span className="text-xs text-base-content/60 shrink-0">
-                    {file.isPublic ? 'Public' : 'Private'}
-                  </span>
-                </div>
-                <div className="text-xs text-base-content/60 flex justify-between">
-                  <span>{formatFileSize(file.fileSize)}</span>
-                  <span>{formatDate(file.uploadDate)}</span>
-                </div>
-                <div className="text-xs text-base-content/60">{file.ownerName || 'You'}</div>
-                {actions(file)}
-              </div>
+      <div className={`grid gap-4 ${detailsFile ? 'xl:grid-cols-[minmax(0,1fr)_320px]' : ''}`}>
+        <div>
+          {filteredFiles.length === 0 ? (
+            <div className="sv-card p-10 text-center">
+              <p className="font-medium">No files found</p>
+              <p className="mt-1 text-sm text-slate-500">
+                {searchQuery ? `Nothing matches "${searchQuery}".` : 'Upload a file to get started.'}
+              </p>
+              {!searchQuery && (
+                <a href="/dashboard/upload" className="btn btn-primary btn-sm mt-4 rounded-full">Upload</a>
+              )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="overflow-x-auto bg-base-100 border border-base-300">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th><button type="button" className="link" onClick={() => handleSort('originalName')}>Name{sortMark('originalName')}</button></th>
-                <th className="hidden sm:table-cell"><button type="button" className="link" onClick={() => handleSort('fileSize')}>Size{sortMark('fileSize')}</button></th>
-                <th className="hidden md:table-cell">Owner</th>
-                <th className="hidden lg:table-cell">Access</th>
-                <th className="hidden md:table-cell"><button type="button" className="link" onClick={() => handleSort('uploadDate')}>Date{sortMark('uploadDate')}</button></th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFiles.map((file) => (
-                <tr key={file.id}>
-                  <td>
-                    <button type="button" className="link text-left" onClick={() => handleViewFile(file)}>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredFiles.map((file) => {
+                const tone = fileTone(file);
+                return (
+                  <div key={file.id} className="group sv-card p-4 transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-4px_rgba(37,99,235,0.08)]">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className={`sv-glyph ${tone.className}`}>{tone.label}</span>
+                      {accessPill(file)}
+                    </div>
+                    <button type="button" className="mt-3 block w-full truncate text-left text-sm font-medium" onClick={() => handleViewFile(file)}>
                       {file.originalName || file.fileName}
                     </button>
-                  </td>
-                  <td className="hidden sm:table-cell">{formatFileSize(file.fileSize)}</td>
-                  <td className="hidden md:table-cell">{file.ownerName || 'You'}</td>
-                  <td className="hidden lg:table-cell">{file.isPublic ? 'Public' : 'Private'}</td>
-                  <td className="hidden md:table-cell">{formatDate(file.uploadDate)}</td>
-                  <td>{actions(file)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="mt-1 flex justify-between text-xs text-slate-500">
+                      <span>{formatFileSize(file.fileSize)}</span>
+                      <span>{formatDate(file.uploadDate)}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-slate-400">{file.ownerName || 'You'}</div>
+                    <div className="mt-2">{actions(file)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="sv-card overflow-x-auto">
+              <table className="table table-sm">
+                <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th><button type="button" onClick={() => handleSort('originalName')}>Name{sortMark('originalName')}</button></th>
+                    <th className="hidden sm:table-cell"><button type="button" onClick={() => handleSort('fileSize')}>Size{sortMark('fileSize')}</button></th>
+                    <th className="hidden md:table-cell">Owner</th>
+                    <th className="hidden lg:table-cell">Access</th>
+                    <th className="hidden md:table-cell"><button type="button" onClick={() => handleSort('uploadDate')}>Modified{sortMark('uploadDate')}</button></th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFiles.map((file) => {
+                    const tone = fileTone(file);
+                    return (
+                      <tr key={file.id} className="group h-14 hover:bg-slate-100">
+                        <td>
+                          <button type="button" className="flex items-center gap-3 text-left" onClick={() => handleViewFile(file)}>
+                            <span className={`sv-glyph ${tone.className}`}>{tone.label}</span>
+                            <span className="max-w-[220px] truncate font-medium">{file.originalName || file.fileName}</span>
+                          </button>
+                        </td>
+                        <td className="hidden sm:table-cell">{formatFileSize(file.fileSize)}</td>
+                        <td className="hidden md:table-cell">{file.ownerName || 'You'}</td>
+                        <td className="hidden lg:table-cell">{accessPill(file)}</td>
+                        <td className="hidden md:table-cell">{formatDate(file.uploadDate)}</td>
+                        <td>{actions(file)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+
+        {detailsFile && (
+          <aside className="sv-card h-fit p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-400">File details</div>
+                <h2 className="mt-1 break-all text-base font-semibold">{detailsFile.originalName || detailsFile.fileName}</h2>
+              </div>
+              <button type="button" className="btn btn-ghost btn-xs btn-square" onClick={() => setDetailsFile(null)} aria-label="Close details">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">Size</dt>
+                <dd>{formatFileSize(detailsFile.fileSize)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">Uploaded</dt>
+                <dd>{formatDate(detailsFile.uploadDate)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">Owner</dt>
+                <dd>{detailsFile.ownerName || 'You'}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-500">Access</dt>
+                <dd>{accessPill(detailsFile)}</dd>
+              </div>
+            </dl>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" className="btn btn-primary btn-sm rounded-full" onClick={() => handleViewFile(detailsFile)}>Preview</button>
+              <button type="button" className="btn btn-sm" onClick={() => setSharingFile(detailsFile)}>Share</button>
+            </div>
+          </aside>
+        )}
+      </div>
     </div>
   );
 };

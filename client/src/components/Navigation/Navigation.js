@@ -1,45 +1,32 @@
 import React from 'react';
-import { Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 
 export default function Navigation() {
   const { user } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-40 px-4">
-      <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
-        <a href="/" className="text-sm font-semibold">
-          File Sharing System
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur-md">
+      <div className="mx-auto flex h-[68px] w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+        <a href="/" className="font-display text-base font-semibold text-slate-900">
+          File Sharing
         </a>
+        <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+          <a href="#features" className="hover:text-slate-900">Features</a>
+          <a href="#workspace" className="hover:text-slate-900">Workspace</a>
+          <a href="#limits" className="hover:text-slate-900">Limits</a>
+          <a href="#api" className="hover:text-slate-900">API</a>
+        </nav>
         <div className="flex items-center gap-2">
-          <a
-            href="https://github.com/dineshkorukonda/FileSharingSystem"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-ghost btn-sm hidden sm:inline-flex"
-          >
-            Source
-          </a>
-          <button
-            type="button"
-            onClick={() => toggleTheme()}
-            className="btn btn-ghost btn-sm btn-square"
-            aria-label="Toggle theme"
-          >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
           {user ? (
-            <a href="/dashboard" className="btn btn-primary btn-sm">
-              Dashboard
+            <a href="/dashboard" className="btn btn-primary btn-sm rounded-full px-4">
+              Open drive
             </a>
           ) : (
             <>
-              <a href="/auth" className="btn btn-ghost btn-sm">
+              <a href="/auth" className="btn btn-ghost btn-sm hidden sm:inline-flex">
                 Sign in
               </a>
-              <a href="/auth" className="btn btn-primary btn-sm">
+              <a href="/auth" className="btn btn-primary btn-sm rounded-full px-4">
                 Get started
               </a>
             </>

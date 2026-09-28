@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
   X,
-  Sun,
-  Moon,
   Upload,
   User,
   LogOut,
@@ -19,7 +16,6 @@ import FileSearchResults from '../Search/FileSearchResults';
 
 const Header = ({ userName, userProfileImage, onMenuToggle }) => {
   const { logout, user } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,8 +131,8 @@ const Header = ({ userName, userProfileImage, onMenuToggle }) => {
   };
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 sticky top-0 z-30 px-3 min-h-14">
-      <div className="flex items-center gap-2 flex-1 max-w-md">
+    <header className="sticky top-0 z-30 flex h-[68px] items-center justify-between gap-3 border-b border-slate-200 bg-white/85 px-4 backdrop-blur-md">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"
           onClick={onMenuToggle}
@@ -146,17 +142,19 @@ const Header = ({ userName, userProfileImage, onMenuToggle }) => {
           <Menu className="h-4 w-4" />
         </button>
 
-        <div className="relative w-full" ref={searchContainerRef}>
-          <label className="input input-bordered input-sm flex items-center gap-2 w-full">
-            <Search className="h-4 w-4 opacity-60" />
+        <div className="relative w-full max-w-xl" ref={searchContainerRef}>
+          <label className="sv-search w-full">
+            <Search className="h-4 w-4 shrink-0" />
             <input
               type="text"
-              className="grow"
               placeholder="Search files"
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && setShowResults(true)}
             />
+            <span className="hidden rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-400 sm:inline">
+              Find
+            </span>
             {searchQuery && (
               <button type="button" onClick={clearSearch} aria-label="Clear search">
                 <X className="h-3.5 w-3.5" />
@@ -184,18 +182,9 @@ const Header = ({ userName, userProfileImage, onMenuToggle }) => {
           <Upload className="h-4 w-4" />
           Upload
         </button>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm btn-square"
-          onClick={() => toggleTheme()}
-          aria-label="Toggle theme"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
-
         <div className="dropdown dropdown-end">
           <button type="button" tabIndex={0} className="btn btn-ghost btn-sm" aria-label="Account menu">
-            <span className="w-7 h-7 bg-base-300 flex items-center justify-center text-xs overflow-hidden">
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-xs font-medium text-[#2563eb]">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (

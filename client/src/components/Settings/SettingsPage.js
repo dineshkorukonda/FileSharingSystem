@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../../context/ThemeContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const SettingsPage = () => {
-  const { isDark, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,20 +142,6 @@ const SettingsPage = () => {
 
       <section className="card bg-base-100 border border-base-300">
         <div className="card-body">
-          <h2 className="font-medium border-b border-base-300 pb-2">Appearance</h2>
-          <div className="flex gap-2 mt-3">
-            <button type="button" className={`btn btn-sm ${!isDark ? 'btn-active' : 'btn-ghost'}`} onClick={() => isDark && toggleTheme()}>
-              Light
-            </button>
-            <button type="button" className={`btn btn-sm ${isDark ? 'btn-active' : 'btn-ghost'}`} onClick={() => !isDark && toggleTheme()}>
-              Dark
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="card bg-base-100 border border-base-300">
-        <div className="card-body">
           <h2 className="font-medium border-b border-base-300 pb-2">Notifications</h2>
           <label className="flex items-center justify-between gap-4 mt-3">
             <span className="text-sm">Email when a file is shared with you</span>
@@ -183,7 +167,7 @@ const SettingsPage = () => {
         </div>
       </section>
 
-      <ToastContainer position="bottom-right" theme={isDark ? 'dark' : 'light'} />
+      <ToastContainer position="bottom-right" theme="light" />
     </div>
   );
 };

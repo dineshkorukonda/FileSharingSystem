@@ -22,13 +22,26 @@ const StorageOverview = ({ storage, isLoading }) => {
           <p className="text-sm text-base-content/60 mt-3">Loading</p>
         ) : (
           <div className="mt-3 space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="font-medium">{formatBytes(storage?.used || 0)}</span>
-              <span className="text-base-content/60">
-                {percentage}% of {formatBytes(storage?.total || 1000 * 1024 * 1024)}
-              </span>
+            <div className="flex items-center gap-4">
+              <div
+                className="grid h-[120px] w-[120px] place-items-center rounded-full"
+                style={{
+                  background: `conic-gradient(#2563eb ${percentage * 3.6}deg, #e2e8f0 0deg)`,
+                }}
+              >
+                <div className="grid h-[84px] w-[84px] place-items-center rounded-full bg-white text-center">
+                  <div>
+                    <div className="font-display text-lg font-semibold">{formatBytes(storage?.used || 0)}</div>
+                    <div className="text-[11px] text-slate-400">{percentage}%</div>
+                  </div>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">{formatBytes(storage?.used || 0)} used</div>
+                <div className="text-slate-500">of {formatBytes(storage?.total || 1000 * 1024 * 1024)}</div>
+                <progress className="progress progress-primary mt-3 w-full" value={percentage} max="100" />
+              </div>
             </div>
-            <progress className="progress w-full" value={percentage} max="100" />
             <div className="flex justify-between text-base-content/70">
               <span>Free {formatBytes(freeStorage)}</span>
               <span>Limit {formatBytes(storage?.total || 0)}</span>

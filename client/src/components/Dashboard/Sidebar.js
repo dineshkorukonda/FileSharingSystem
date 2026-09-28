@@ -9,6 +9,7 @@ import {
   User,
   LogOut,
   Share2,
+  Plus,
 } from 'lucide-react';
 
 const Sidebar = ({ onNavigate }) => {
@@ -39,8 +40,8 @@ const Sidebar = ({ onNavigate }) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Overview', path: '/dashboard' },
-    { icon: Folder, label: 'Files', path: '/dashboard/files' },
-    { icon: Share2, label: 'Shared', path: '/dashboard/shared' },
+    { icon: Folder, label: 'My Drive', path: '/dashboard/files' },
+    { icon: Share2, label: 'Shared with me', path: '/dashboard/shared' },
     { icon: Upload, label: 'Upload', path: '/dashboard/upload' },
     { icon: User, label: 'Profile', path: '/dashboard/profile' },
     { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
@@ -52,14 +53,24 @@ const Sidebar = ({ onNavigate }) => {
   );
 
   return (
-    <aside className="flex flex-col justify-between min-h-full w-60 bg-base-100 border-r border-base-300">
+    <aside className="flex min-h-full w-[260px] flex-col justify-between border-r border-slate-200 bg-white">
       <div>
-        <div className="flex items-center px-4 h-14 border-b border-base-300">
-          <Link to="/" className="font-semibold text-sm" onClick={onNavigate}>
-            File Sharing System
+        <div className="flex h-[68px] items-center px-5">
+          <Link to="/" className="font-display text-base font-semibold" onClick={onNavigate}>
+            File Sharing
           </Link>
         </div>
-        <ul className="menu w-full px-2 py-3">
+        <div className="px-4">
+          <Link
+            to="/dashboard/upload"
+            onClick={onNavigate}
+            className="btn btn-primary w-full rounded-full shadow-[0_10px_25px_-3px_rgba(37,99,235,0.35)]"
+          >
+            <Plus className="h-4 w-4" />
+            New upload
+          </Link>
+        </div>
+        <ul className="menu mt-3 w-full px-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path
@@ -69,7 +80,7 @@ const Sidebar = ({ onNavigate }) => {
                 <Link
                   to={item.path}
                   onClick={onNavigate}
-                  className={isActive ? 'menu-active' : ''}
+                  className={isActive ? 'bg-blue-50 font-medium text-[#2563eb]' : 'text-slate-600'}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -79,15 +90,15 @@ const Sidebar = ({ onNavigate }) => {
           })}
         </ul>
       </div>
-      <div className="p-4 border-t border-base-300 space-y-3">
-        <div className="text-xs text-base-content/70">
-          <div className="flex justify-between mb-1">
+      <div className="space-y-3 border-t border-slate-200 p-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          <div className="flex justify-between font-medium text-slate-800">
             <span>Storage</span>
             <span>{percentageUsed}%</span>
           </div>
-          <progress className="progress w-full" value={percentageUsed} max="100" />
-          <div className="flex justify-between mt-1">
-            <span>{storageUsage.usedMB} MB</span>
+          <progress className="progress progress-primary mt-2 w-full" value={percentageUsed} max="100" />
+          <div className="mt-1 flex justify-between">
+            <span>{storageUsage.usedMB} MB used</span>
             <span>{storageUsage.totalMB} MB</span>
           </div>
         </div>

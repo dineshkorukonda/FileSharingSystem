@@ -28,7 +28,7 @@ const Dashboard = () => {
           userProfileImage={user?.profileImageUrl}
           onMenuToggle={() => setIsMobileOpen(true)}
         />
-        <main className="flex-1 p-5 sm:p-7 max-w-6xl w-full mx-auto">
+        <main className="flex-1 w-full px-4 py-6 sm:px-8">
           <Outlet />
         </main>
       </div>
