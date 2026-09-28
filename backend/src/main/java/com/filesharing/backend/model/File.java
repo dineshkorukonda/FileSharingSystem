@@ -31,7 +31,7 @@ public class File {
     @Column(name = "access_code", unique = true)
     private String accessCode;
     
-    @Column(name = "is_public", nullable = false, columnDefinition = "BIT(1) default 0")
+    @Column(name = "is_public", nullable = false)
     private boolean isPublic = false;
     
     @Column(name = "original_name", nullable = false)

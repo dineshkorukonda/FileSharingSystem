@@ -13,7 +13,6 @@ import Settings from './(pages)/dashboard/settings';
 import PasswordResetPage from './(pages)/reset-password/page';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import './App.css';
 
 function App() {
   return (

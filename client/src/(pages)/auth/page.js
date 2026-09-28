@@ -1,188 +1,237 @@
-import { useState } from 'react';
-import { FiMail, FiLock, FiUser, FiCloud, FiUploadCloud, FiShare2, FiShield, FiFolder } from 'react-icons/fi';
-import { FaGoogle, FaGithub } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-import { useAuth } from '../../context/AuthContext';
-import './page.css';
-import { ToastContainer } from 'react-toastify';
+import React, { useState } from 'react';
+import { ArrowLeft, Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Auth = () => {
-    const [isSignIn, setIsSignIn] = useState(true);
-    const [fullName, setFullName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+  const [tab, setTab] = useState('signin');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const toggleMode = () => {
-        setIsSignIn(!isSignIn);
-        setError("");
-    };
+  const { login } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-        try {
-            if (isSignIn) {
-                // Login
-                const res = await fetch("http://localhost:8080/api/auth/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    // Use the login function from AuthContext with the user data from the response
-                    login({
-                        email: data.email || email,
-                        fullName: data.fullName || email.split('@')[0],
-                        profileImageUrl: data.profileImageUrl
-                    }, data.accessToken);
-                    toast.success("Login successful!");
-                } else {
-                    const errorMessage = data.message || "Login failed";
-                    setError(errorMessage);
-                    toast.error(errorMessage);
-                }
-            } else {
-                // Register
-                const res = await fetch("http://localhost:8080/api/auth/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ fullName, email, password })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    setIsSignIn(true);
-                    toast.success("Registration successful! Please log in.");
-                } else {
-                    const errorMessage = data.message || "Registration failed";
-                    setError(errorMessage);
-                    toast.error(errorMessage);
-                }
-            }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
-            toast.error("Incorrect email or password.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        login(
+          {
+            email: data.email || email,
+            fullName: data.fullName || email.split('@')[0],
+            profileImageUrl: data.profileImageUrl,
+          },
+          data.accessToken
+        );
+        toast.success('Welcome back');
+      } else {
+        const msg = data.message || 'Invalid email or password';
+        setError(msg);
+        toast.error(msg);
+      }
+    } catch (err) {
+      setError('Unable to connect to server. Please try again.');
+      toast.error('Network connection error.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="auth-container">
-            <div className="auth-left">
-                <div className="auth-illustration">
-                    <div className="floating-icons">
-                        <div className="icon-group main">
-                            <FiCloud className="icon main-icon" />
-                            <FiUploadCloud className="icon upload-icon" />
-                        </div>
-                        <div className="icon-group secondary top">
-                            <FiShare2 className="icon" />
-                        </div>
-                        <div className="icon-group secondary bottom-left">
-                            <FiShield className="icon" />
-                        </div>
-                        <div className="icon-group secondary bottom-right">
-                            <FiFolder className="icon" />
-                        </div>
-                    </div>
-                    <h1 className="illustration-title">
-                        Cloud Storage <br /> Made Simple
-                    </h1>
-                </div>
-            </div>
-            
-            <div className="auth-right">
-                <div className="auth-form-container">
-                    <div className="auth-header">
-                        <h1 className="auth-title">
-                            {isSignIn ? "Welcome Back" : "Get Started"}
-                        </h1>
-                        <p className="auth-subtitle">
-                            {isSignIn 
-                                ? "Sign in to continue to CloudShare" 
-                                : "Create your account"}
-                        </p>
-                    </div>
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Account created. Sign in to continue.');
+        setTab('signin');
+        setPassword('');
+      } else {
+        const msg = data.message || 'Registration failed';
+        setError(msg);
+        toast.error(msg);
+      }
+    } catch (err) {
+      setError('Unable to connect to server. Please try again.');
+      toast.error('Network connection error.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    <div className="social-buttons">
-                    </div>
-                    <form className="auth-form" onSubmit={handleSubmit}>
-                        {!isSignIn && (
-                            <div className="form-group">
-                                <div className="input-icon-wrapper">
-                                    <FiUser className="input-icon" />
-                                    <input
-                                        type="text"
-                                        placeholder="Full Name"
-                                        className="auth-input"
-                                        value={fullName}
-                                        onChange={e => setFullName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <div className="input-icon-wrapper">
-                                <FiMail className="input-icon" />
-                                <input
-                                    type="email"
-                                    placeholder="Email Address"
-                                    className="auth-input"
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <div className="input-icon-wrapper">
-                                <FiLock className="input-icon" />
-                                <input
-                                    type="password"
-                                    placeholder="Password"
-                                    className="auth-input"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {isSignIn && (
-                            <div className="form-extra" style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
-                                <a href="/reset-password" className="forgot-link">Forgot password?</a>
-                            </div>
-                        )}
-
-                        {error && <div className="auth-error">{error}</div>}
-
-                        <button type="submit" className="auth-button" disabled={loading}>
-                            {loading ? "Loading..." : isSignIn ? "Sign In" : "Create Account"}
-                        </button>
-                    </form>
-
-                    <p className="toggle-text">
-                        {isSignIn 
-                            ? "Don't have an account? " 
-                            : "Already have an account? "}
-                        <button onClick={toggleMode} className="toggle-button">
-                            {isSignIn ? "Sign Up" : "Sign In"}
-                        </button>
-                    </p>
-                </div>
-            </div>
-            <ToastContainer />
+  return (
+    <div className="min-h-screen bg-base-200 flex flex-col">
+      <header className="navbar bg-base-100 border-b border-base-300 px-4">
+        <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
+          <a href="/" className="btn btn-ghost btn-sm gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Home
+          </a>
+          <button
+            type="button"
+            onClick={() => toggleTheme()}
+            className="btn btn-ghost btn-sm btn-square"
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
         </div>
-    );
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="card bg-base-100 border border-base-300 w-full max-w-sm">
+          <div className="card-body">
+            <h1 className="text-xl font-semibold">
+              {tab === 'signin' ? 'Sign in' : 'Create an account'}
+            </h1>
+            <p className="text-sm text-base-content/70">
+              {tab === 'signin'
+                ? 'Use your email and password.'
+                : 'Register to upload and share files.'}
+            </p>
+
+            <div role="tablist" className="tabs tabs-border mt-2">
+              <button
+                type="button"
+                role="tab"
+                className={`tab ${tab === 'signin' ? 'tab-active' : ''}`}
+                onClick={() => { setTab('signin'); setError(''); }}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className={`tab ${tab === 'register' ? 'tab-active' : ''}`}
+                onClick={() => { setTab('register'); setError(''); }}
+              >
+                Register
+              </button>
+            </div>
+
+            {error && <div className="alert alert-error text-sm mt-4">{error}</div>}
+
+            {tab === 'signin' ? (
+              <form onSubmit={handleSignIn} className="space-y-4 mt-4">
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Email</legend>
+                  <input
+                    type="email"
+                    className="input input-bordered w-full"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </fieldset>
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">
+                    Password
+                    <a href="/reset-password" className="link link-hover text-xs font-normal">
+                      Forgot password
+                    </a>
+                  </legend>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="input input-bordered w-full pr-10"
+                      aria-label="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs btn-square absolute right-2 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Show password"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </fieldset>
+                <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+                  {loading ? 'Signing in' : 'Continue'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegister} className="space-y-4 mt-4">
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Full name</legend>
+                  <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </fieldset>
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Email</legend>
+                  <input
+                    type="email"
+                    className="input input-bordered w-full"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </fieldset>
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Password</legend>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="input input-bordered w-full pr-10"
+                      aria-label="Password"
+                      placeholder="At least 6 characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs btn-square absolute right-2 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Show password"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </fieldset>
+                <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+                  {loading ? 'Creating account' : 'Create account'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <ToastContainer position="bottom-right" theme={isDark ? 'dark' : 'light'} />
+    </div>
+  );
 };
 
 export default Auth;

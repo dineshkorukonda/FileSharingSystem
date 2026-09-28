@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     // Helper to fetch user profile from backend
-    const fetchUserProfile = async (token) => {
+    const fetchUserProfile = useCallback(async (token) => {
         try {
             const res = await fetch('http://localhost:8080/api/users/profile', {
                 headers: {
@@ -22,39 +22,38 @@ export const AuthProvider = ({ children }) => {
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
                 setIsAuthenticated(true);
+                return userData;
             } else {
                 setIsAuthenticated(false);
                 setUser(null);
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
+                return null;
             }
         } catch (error) {
+            console.error('Error fetching user profile:', error);
             setIsAuthenticated(false);
             setUser(null);
             localStorage.removeItem('user');
             localStorage.removeItem('token');
+            return null;
         }
-    };
+    }, []);
 
     useEffect(() => {
-        // On mount, check for token and fetch user profile from backend
         const token = localStorage.getItem('token');
         if (token) {
             fetchUserProfile(token).finally(() => setLoading(false));
         } else {
             setLoading(false);
         }
-    }, []);
+    }, [fetchUserProfile]);
 
     const login = async (userDataOrToken, tokenMaybe) => {
-        // login(userData, token) or login(token)
-        let token, userData;
+        let token;
         if (tokenMaybe) {
-            // login(userData, token)
             token = tokenMaybe;
-            userData = userDataOrToken;
         } else {
-            // login(token)
             token = userDataOrToken;
         }
         localStorage.setItem('token', token);
@@ -70,13 +69,27 @@ export const AuthProvider = ({ children }) => {
         navigate('/');
     };
 
-    // Don't render children until initial auth check is complete
+    const refreshUser = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            return await fetchUserProfile(token);
+        }
+        return null;
+    };
+
     if (loading) {
-        return null; // or a loading spinner
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-base-200">
+                <div className="flex flex-col items-center gap-3">
+                    <span className="loading loading-spinner loading-md" />
+                    <p className="text-sm text-base-content/70">Loading</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
@@ -88,4 +101,4 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-}; 
+};

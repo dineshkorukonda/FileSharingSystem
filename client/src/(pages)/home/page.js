@@ -1,196 +1,140 @@
-import './page.css';
+import React, { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import Navigation from '../../components/Navigation/Navigation';
 import Footer from '../../components/Footer/Footer';
-import { FiUploadCloud, FiLock, FiFolder, FiUsers, FiBarChart2, FiRefreshCw, FiArrowRight, FiKey, FiShield } from 'react-icons/fi';
+import { useAuth } from '../../context/AuthContext';
+
+const capabilities = [
+  {
+    title: 'Storage and transfer',
+    text: 'Drag-and-drop uploads up to 25MB, file classification, and a storage usage meter.',
+  },
+  {
+    title: 'Access and sharing',
+    text: 'Invite by email or copy a link, then revoke access from the shared list.',
+  },
+  {
+    title: 'Preview',
+    text: 'Browse files in a table or grid, search them, star them, and preview PDFs in the browser.',
+  },
+  {
+    title: 'Accounts',
+    text: 'JWT sign-in, profile updates, password reset, and a PostgreSQL database on Neon.',
+  },
+];
 
 export default function Home() {
-    const scrollToSection = (id) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
-    const GoToAuth = () => {    
-        window.location.href = "/auth";
-    }
+  const { user } = useAuth();
+  const [copiedSnippet, setCopiedSnippet] = useState(false);
 
-    return (
-        <div className="home">
-            <Navigation onScrollTo={scrollToSection} />
-            
-            <section className="hero-section">
-                <div className="hero-content">
-                    <div className="hero-badge animate-up">
-                        <FiUploadCloud className="badge-icon" />
-                        <span>Trusted by 1M+ users worldwide</span>
-                    </div>
-                    <h1 className="hero-title animate-up">
-                        Share Files with 
-                        <span className="gradient-text"> Lightning Speed</span>
-                    </h1>
-                    <p className="hero-description animate-up delay-1">
-                        Experience the future of file sharing. Drag, drop, and share in seconds.
-                        Military-grade encryption meets user-friendly design.
-                    </p>
-                    <div className="hero-buttons animate-up delay-2">
-                        <button className="hero-button primary">
-                            <FiUploadCloud className="button-icon"  onClick={GoToAuth}/>
-                            Start Uploading
-                        </button>
-                        <button className="hero-button secondary">
-                            See How It Works
-                            <FiArrowRight className="button-icon" />
-                        </button>
-                    </div>
-                </div>
-                <div className="hero-stats animate-up delay-3">
-                    <div className="stat-card">
-                        <div className="stat-icon">🚀</div>
-                        <span className="stat-number">10M+</span>
-                        <span className="stat-label">Files Shared</span>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon">🔒</div>
-                        <span className="stat-number">99.9%</span>
-                        <span className="stat-label">Secure</span>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon">⚡</div>
-                        <span className="stat-number">5TB</span>
-                        <span className="stat-label">Storage</span>
-                    </div>
-                </div>
-            </section>
+  const curlCode = `# 1. Authenticate and obtain JWT
+curl -X POST http://localhost:8080/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"alex@example.com","password":"secretpassword"}'
 
-            <section id="features" className="features-section">
-                <div className="section-header">
-                    <h2 className="section-title">Everything You Need</h2>
-                    <p className="section-subtitle">Powerful features to make file sharing a breeze</p>
-                </div>
-                <div className="features-grid">
-                    <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            <FiLock className="feature-icon" />
-                        </div>
-                        <h3 className="feature-title">Bank-Level Security</h3>
-                        <p className="feature-description">
-                            End-to-end encryption and customizable access controls keep your files safe
-                        </p>
-                        <a href="#learn-more" className="feature-link">
-                            Learn more <FiArrowRight />
-                        </a>
-                    </div>
-                    <div className="feature-card highlight">
-                        <div className="feature-icon-wrapper">
-                            <FiFolder className="feature-icon" />
-                        </div>
-                        <div className="feature-badge">Most Popular</div>
-                        <h3 className="feature-title">Smart Organization</h3>
-                        <p className="feature-description">
-                            AI-powered file organization with smart tags and search
-                        </p>
-                        <a href="#learn-more" className="feature-link">
-                            Learn more <FiArrowRight />
-                        </a>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            <FiUsers className="feature-icon" />
-                        </div>
-                        <h3 className="feature-title">Team Collaboration</h3>
-                        <p className="feature-description">
-                            Real-time collaboration with comments and version control
-                        </p>
-                        <a href="#learn-more" className="feature-link">
-                            Learn more <FiArrowRight />
-                        </a>
-                    </div>
-                </div>
-            </section>
+# 2. Upload file stream (multipart)
+curl -X POST http://localhost:8080/api/files/upload \\
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \\
+  -F "file=@document.pdf"
 
-            <section id="security" className="security-section">
-                <div className="section-header">
-                    <h2 className="section-title">Enterprise-Grade Security</h2>
-                    <p className="section-subtitle">Your data's safety is our top priority</p>
-                </div>
-                <div className="security-grid">
-                    <div className="security-content">
-                        <div className="security-feature">
-                            <div className="security-icon-wrapper">
-                                <FiLock className="security-icon" />
-                            </div>
-                            <div className="security-text">
-                                <h3>End-to-End Encryption</h3>
-                                <p>Your files are encrypted in transit and at rest using AES-256 encryption</p>
-                            </div>
-                        </div>
-                        <div className="security-feature">
-                            <div className="security-icon-wrapper">
-                                <FiKey className="security-icon" />
-                            </div>
-                            <div className="security-text">
-                                <h3>Access Control</h3>
-                                <p>Set granular permissions and expiring links for shared files</p>
-                            </div>
-                        </div>
-                        <div className="security-feature">
-                            <div className="security-icon-wrapper">
-                                <FiShield className="security-icon" />
-                            </div>
-                            <div className="security-text">
-                                <h3>Compliance</h3>
-                                <p>GDPR, HIPAA, and SOC 2 Type II compliant infrastructure</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="security-visual">
-                        <div className="security-card">
-                            <div className="security-card-header">
-                                <FiShield className="card-icon" />
-                                <span>Security Status</span>
-                            </div>
-                            <div className="security-card-content">
-                                <div className="security-status">
-                                    <span className="status-dot active"></span>
-                                    <span>All Systems Operational</span>
-                                </div>
-                                <div className="security-metrics">
-                                    <div className="metric">
-                                        <span className="metric-label">Uptime</span>
-                                        <span className="metric-value">99.99%</span>
-                                    </div>
-                                    <div className="metric">
-                                        <span className="metric-label">Threats Blocked</span>
-                                        <span className="metric-value">1M+</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+# 3. Create time-limited share link (Viewer permission)
+curl -X POST http://localhost:8080/api/files/share/create-link \\
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"fileId":12,"permission":"VIEWER","expiresInHours":24}'`;
 
-            <section className="cta-section">
-                <div className="cta-content">
-                    <h2 className="cta-title">Ready to Get Started?</h2>
-                    <p className="cta-description">
-                        Join millions of users who trust CloudShare for their file sharing needs
-                    </p>
-                    <button className="cta-button">
-                        Start Free Trial
-                        <FiArrowRight className="button-icon" />
-                    </button>
-                </div>
-                <div className="cta-stats">
-                    <div className="trust-badge">
-                        <span className="trust-score">4.9</span>
-                        <div className="trust-stars">⭐⭐⭐⭐⭐</div>
-                        <span className="trust-reviews">from 10,000+ reviews</span>
-                    </div>
-                </div>
-            </section>
+  const handleCopy = () => {
+    navigator.clipboard.writeText(curlCode);
+    setCopiedSnippet(true);
+    setTimeout(() => setCopiedSnippet(false), 2000);
+  };
 
-            <Footer />
-        </div>
-    );
+  return (
+    <div className="min-h-screen bg-base-200 text-base-content flex flex-col">
+      <Navigation />
+
+      <main className="flex-1 max-w-3xl mx-auto px-6 py-14 w-full space-y-12">
+        <section>
+          <h1 className="text-3xl font-semibold">File Sharing System</h1>
+          <p className="mt-3 text-base-content/80 leading-relaxed">
+            Store files, share them with another account, and open PDFs in the browser.
+            The API is Spring Boot. The database is PostgreSQL on Neon.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {user ? (
+              <a href="/dashboard" className="btn btn-primary btn-sm">
+                Open dashboard
+              </a>
+            ) : (
+              <a href="/auth" className="btn btn-primary btn-sm">
+                Start sharing
+              </a>
+            )}
+            <a href="/auth" className="btn btn-ghost btn-sm">
+              Sign in
+            </a>
+            <a
+              href="https://github.com/dineshkorukonda/FileSharingSystem"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost btn-sm"
+            >
+              GitHub
+            </a>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-medium border-b border-base-300 pb-2 mb-4">
+            What it does
+          </h2>
+          <ul className="divide-y divide-base-300">
+            {capabilities.map((item) => (
+              <li key={item.title} className="py-4">
+                <h3 className="font-medium">{item.title}</h3>
+                <p className="text-sm text-base-content/70 mt-1">{item.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between border-b border-base-300 pb-2 mb-4">
+            <h2 className="text-lg font-medium">API example</h2>
+            <button type="button" onClick={handleCopy} className="btn btn-ghost btn-xs gap-1">
+              {copiedSnippet ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copiedSnippet ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <pre className="bg-base-100 border border-base-300 p-4 text-xs overflow-x-auto">
+            {curlCode}
+          </pre>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-medium border-b border-base-300 pb-2 mb-4">Stack</h2>
+          <dl className="bg-base-100 border border-base-300 divide-y divide-base-300 text-sm">
+            <div className="flex justify-between gap-4 px-4 py-3">
+              <dt className="text-base-content/70">Backend</dt>
+              <dd>Java 17, Spring Boot 3.4</dd>
+            </div>
+            <div className="flex justify-between gap-4 px-4 py-3">
+              <dt className="text-base-content/70">Database</dt>
+              <dd>PostgreSQL (Neon)</dd>
+            </div>
+            <div className="flex justify-between gap-4 px-4 py-3">
+              <dt className="text-base-content/70">Client</dt>
+              <dd>React 19, DaisyUI</dd>
+            </div>
+            <div className="flex justify-between gap-4 px-4 py-3">
+              <dt className="text-base-content/70">Auth</dt>
+              <dd>JWT</dd>
+            </div>
+          </dl>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }

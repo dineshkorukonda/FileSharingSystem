@@ -1,275 +1,176 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiFileText, FiExternalLink, FiPlus, FiClock, FiStar, FiDownload, FiEye, FiFile } from 'react-icons/fi';
+import { Download, Eye } from 'lucide-react';
 import StorageOverview from './StorageOverview';
 import RecentFiles from './RecentFiles';
 import QuickActions from './QuickActions';
 import SharedFilesWidget from './SharedFilesWidget';
-import './DashboardHome.css';
-import { downloadFile } from '../../../utils/fileUtils';
 
 const DashboardHome = () => {
-    const [recentFiles, setRecentFiles] = useState([]);
-    const [starredFiles, setStarredFiles] = useState([]);
-    const [allFiles, setAllFiles] = useState([]);
-    const [storage, setStorage] = useState({
-        used: 0,
-        total: 1000,
-        fileTypes: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
-    const [viewingFile, setViewingFile] = useState(null);
+  const [recentFiles, setRecentFiles] = useState([]);
+  const [starredFiles, setStarredFiles] = useState([]);
+  const [allFiles, setAllFiles] = useState([]);
+  const [sharedCount, setSharedCount] = useState(0);
+  const [storage, setStorage] = useState({
+    used: 0,
+    total: 1000 * 1024 * 1024,
+    fileTypes: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Fetch recent files and storage data
-        const fetchDashboardData = async () => {
-            setIsLoading(true);
-            try {
-                // Fetch recent files
-                const filesResponse = await fetch('http://localhost:8080/api/files/with-details', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                
-                if (filesResponse.ok) {
-                    const filesData = await filesResponse.json();
-                    setAllFiles(filesData);
-                    
-                    // Sort files by upload date (newest first)
-                    const sortedFiles = filesData.sort((a, b) => 
-                        new Date(b.uploadDate) - new Date(a.uploadDate)
-                    );
-                    
-                    // Take the 5 most recent files
-                    setRecentFiles(sortedFiles.slice(0, 5));
-                    
-                    // Get starred files from backend
-                    const starredResponse = await fetch('http://localhost:8080/api/files/starred', {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    
-                    if (starredResponse.ok) {
-                        const starredData = await starredResponse.json();
-                        setStarredFiles(starredData);
-                    } else {
-                        console.error('Error fetching starred files:', starredResponse.status);
-                        setStarredFiles([]);
-                    }
-                    
-                    // Calculate storage metrics
-                    const usedStorage = filesData.reduce((total, file) => total + file.fileSize, 0);
-                    
-                    // Group files by type
-                    const fileTypeMap = {};
-                    filesData.forEach(file => {
-                        const type = file.fileType ? file.fileType.split('/')[1] || file.fileType : 'other';
-                        if (!fileTypeMap[type]) {
-                            fileTypeMap[type] = {
-                                type,
-                                count: 0,
-                                size: 0
-                            };
-                        }
-                        fileTypeMap[type].count += 1;
-                        fileTypeMap[type].size += file.fileSize;
-                    });
-                    
-                    setStorage({
-                        used: usedStorage,
-                        total: 1000 * 1024 * 1024, // 1GB in bytes
-                        fileTypes: Object.values(fileTypeMap)
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                // Set some sample data for demo
-                const sampleFiles = [
-                    { id: 1, fileName: 'project-proposal.pdf', fileType: 'application/pdf', fileSize: 2500000, uploadDate: '2023-10-15T08:30:00Z', user: { fullName: 'You' } },
-                    { id: 2, fileName: 'financial-report-2023.xlsx', fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fileSize: 1800000, uploadDate: '2023-10-10T14:45:00Z', user: { fullName: 'You' } },
-                    { id: 3, fileName: 'team-photo.jpg', fileType: 'image/jpeg', fileSize: 3500000, uploadDate: '2023-10-05T11:20:00Z', user: { fullName: 'You' } }
-                ];
-                
-                setRecentFiles(sampleFiles);
-                setAllFiles(sampleFiles);
-                setStarredFiles([]);
-                
-                setStorage({
-                    used: 14.5 * 1024 * 1024,
-                    total: 1000 * 1024 * 1024,
-                    fileTypes: [
-                        { type: 'pdf', count: 8, size: 4.2 * 1024 * 1024 },
-                        { type: 'image', count: 15, size: 6.8 * 1024 * 1024 },
-                        { type: 'document', count: 5, size: 2.1 * 1024 * 1024 },
-                        { type: 'other', count: 3, size: 1.4 * 1024 * 1024 }
-                    ]
-                });
-            } finally {
-                setIsLoading(false);
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const filesResponse = await fetch('http://localhost:8080/api/files/with-details', { headers });
+        if (filesResponse.ok) {
+          const filesData = await filesResponse.json();
+          setAllFiles(filesData);
+
+          const sortedFiles = [...filesData].sort(
+            (a, b) => new Date(b.uploadDate) - new Date(a.uploadDate)
+          );
+          setRecentFiles(sortedFiles.slice(0, 5));
+
+          const usedStorage = filesData.reduce((total, file) => total + (file.fileSize || 0), 0);
+
+          const fileTypeMap = {};
+          filesData.forEach((file) => {
+            const type = file.fileType ? file.fileType.split('/')[1] || file.fileType : 'other';
+            if (!fileTypeMap[type]) {
+              fileTypeMap[type] = { type, count: 0, size: 0 };
             }
-        };
-        
-        fetchDashboardData();
-    }, []);
+            fileTypeMap[type].count += 1;
+            fileTypeMap[type].size += file.fileSize || 0;
+          });
 
-    // Function to handle file download
-    const handleDownload = (file) => {
-        const fileDownloadUrl = `http://localhost:8080/api/files/download/${file.id}`;
-        
-        // Create an anchor element and trigger download
-        const link = document.createElement('a');
-        link.href = fileDownloadUrl;
-        link.download = file.originalName || file.fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    // Function to handle file viewing
-    const handleViewFile = (file) => {
-        // For this demo, we'll just open the file in a new tab
-        const fileViewUrl = `http://localhost:8080/api/files/download/${file.id}`;
-        window.open(fileViewUrl, '_blank');
-    };
-
-    // Function to get file icon based on file type
-    const getFileIcon = (fileType) => {
-        if (!fileType) return <FiFile size={18} />;
-        
-        if (fileType.includes('image')) {
-            return <FiFileText size={18} style={{ color: '#8b5cf6' }} />;
-        } else if (fileType.includes('pdf')) {
-            return <FiFileText size={18} style={{ color: '#ef4444' }} />;
-        } else if (fileType.includes('word') || fileType.includes('document')) {
-            return <FiFileText size={18} style={{ color: '#3b82f6' }} />;
-        } else if (fileType.includes('sheet') || fileType.includes('excel')) {
-            return <FiFileText size={18} style={{ color: '#10b981' }} />;
-        } else {
-            return <FiFile size={18} style={{ color: '#64748b' }} />;
+          setStorage({
+            used: usedStorage,
+            total: 1000 * 1024 * 1024,
+            fileTypes: Object.values(fileTypeMap),
+          });
         }
+
+        const starredResponse = await fetch('http://localhost:8080/api/files/starred', { headers });
+        if (starredResponse.ok) {
+          setStarredFiles(await starredResponse.json());
+        }
+
+        const sharedResponse = await fetch('http://localhost:8080/api/files/shared-with-me', { headers });
+        if (sharedResponse.ok) {
+          const sharedData = await sharedResponse.json();
+          setSharedCount(sharedData.length);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    // Function to format file size
-    const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    };
+    fetchDashboardData();
+  }, []);
 
-    return (
-        <div className="dashboard-home">
-            <div className="dashboard-grid">
-                <div className="dashboard-col dashboard-col-main">
-                    <div className="dashboard-widget">
-                        <div className="widget-header">
-                            <h2 className="widget-title">Quick Actions</h2>
-                        </div>
-                        <QuickActions />
-                    </div>
-                    
-                    <div className="dashboard-widget">
-                        <div className="widget-header">
-                            <h2 className="widget-title">Recent Files</h2>
-                            <Link to="/dashboard/files" className="widget-link">
-                                View All <FiExternalLink size={14} />
-                            </Link>
-                        </div>
-                        
-                        <RecentFiles 
-                            files={recentFiles} 
-                            isLoading={isLoading} 
-                        />
-                    </div>
-                    
-                    <div className="dashboard-widget">
-                        <div className="widget-header">
-                            <h2 className="widget-title">Shared With Me</h2>
-                            <Link to="/dashboard/shared" className="widget-link">
-                                View All <FiExternalLink size={14} />
-                            </Link>
-                        </div>
-                        
-                        <SharedFilesWidget />
-                    </div>
-                </div>
-                
-                <div className="dashboard-col dashboard-col-side">
-                    <div className="dashboard-widget">
-                        <div className="widget-header">
-                            <h2 className="widget-title">Storage Overview</h2>
-                        </div>
-                        <StorageOverview 
-                            storage={storage} 
-                            isLoading={isLoading} 
-                        />
-                    </div>
-                    
-                    <div className="dashboard-widget">
-                        <div className="widget-header">
-                            <h2 className="widget-title">Starred Files</h2>
-                            {starredFiles.length > 0 && (
-                                <Link to="/dashboard/files" className="widget-link">
-                                    View All <FiExternalLink size={14} />
-                                </Link>
-                            )}
-                        </div>
-                        <div className="starred-files-container">
-                            {isLoading ? (
-                                <div className="loading-state">
-                                    <div className="loading-spinner"></div>
-                                    <span>Loading starred files...</span>
-                                </div>
-                            ) : starredFiles.length > 0 ? (
-                                <div className="starred-files-list">
-                                    {starredFiles.slice(0, 3).map(file => (
-                                        <div key={file.id} className="starred-file-item">
-                                            <div className="starred-file-icon">
-                                                {getFileIcon(file.fileType)}
-                                            </div>
-                                            <div className="starred-file-info">
-                                                <div className="starred-file-name">{file.originalName || file.fileName}</div>
-                                                <div className="starred-file-meta">
-                                                    <span>{formatFileSize(file.fileSize)}</span>
-                                                </div>
-                                            </div>
-                                            <div className="starred-file-actions">
-                                                <button 
-                                                    className="starred-file-action-btn" 
-                                                    title="View"
-                                                    onClick={() => handleViewFile(file)}
-                                                >
-                                                    <FiEye size={16} />
-                                                </button>
-                                                <button 
-                                                    className="starred-file-action-btn" 
-                                                    title="Download"
-                                                    onClick={() => handleDownload(file)}
-                                                >
-                                                    <FiDownload size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="empty-state">
-                                    <FiStar className="empty-icon" size={40} />
-                                    <p>No starred files yet</p>
-                                    <p className="empty-subtext">Files you star will appear here for quick access</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+  const formatBytes = (bytes, decimals = 1) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  };
+
+  const handleDownload = (file) => {
+    const link = document.createElement('a');
+    link.href = `http://localhost:8080/api/files/download/${file.id}`;
+    link.download = file.originalName || file.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const stats = [
+    { label: 'Files', value: allFiles.length },
+    { label: 'Used', value: formatBytes(storage.used) },
+    { label: 'Shared with you', value: sharedCount },
+    { label: 'Starred', value: starredFiles.length },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className="card bg-base-100 border border-base-300">
+            <div className="card-body p-4">
+              <div className="text-xs text-base-content/60">{stat.label}</div>
+              <div className="text-2xl font-semibold mt-1">{stat.value}</div>
             </div>
+          </div>
+        ))}
+      </div>
+
+      <section>
+        <h2 className="text-sm font-medium border-b border-base-300 pb-2 mb-3">Actions</h2>
+        <QuickActions />
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <RecentFiles files={recentFiles} isLoading={isLoading} />
+          <SharedFilesWidget />
         </div>
-    );
+        <div className="space-y-6">
+          <StorageOverview storage={storage} isLoading={isLoading} />
+          <div className="card bg-base-100 border border-base-300">
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between border-b border-base-300 pb-2">
+                <h2 className="text-sm font-medium">Starred</h2>
+                {starredFiles.length > 0 && (
+                  <Link to="/dashboard/files" className="link link-hover text-sm">View all</Link>
+                )}
+              </div>
+              {isLoading ? (
+                <p className="text-sm text-base-content/60 mt-3">Loading</p>
+              ) : starredFiles.length > 0 ? (
+                <ul className="mt-3 divide-y divide-base-300">
+                  {starredFiles.slice(0, 3).map((file) => (
+                    <li key={file.id} className="flex items-center justify-between gap-2 py-2">
+                      <div className="min-w-0">
+                        <div className="text-sm truncate">{file.originalName || file.fileName}</div>
+                        <div className="text-xs text-base-content/60">{formatBytes(file.fileSize)}</div>
+                      </div>
+                      <div className="shrink-0">
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-square"
+                          title="View"
+                          onClick={() => window.open(`http://localhost:8080/api/files/download/${file.id}`, '_blank')}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-square"
+                          title="Download"
+                          onClick={() => handleDownload(file)}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-base-content/60 mt-3">No starred files.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default DashboardHome; 
+export default DashboardHome;

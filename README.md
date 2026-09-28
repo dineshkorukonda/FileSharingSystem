@@ -27,7 +27,7 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
    - File paths are stored in the database to facilitate retrieval
 
 2. **Database Storage**:
-   - File metadata stored in MySQL database
+   - File metadata stored in PostgreSQL (Neon)
    - Includes fields for owner, size, type, upload date, etc.
    - Maintains relationships between files and users
 
@@ -52,25 +52,28 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- npm (v6 or higher)
-- Java JDK 11 or higher
+- Node.js (v18 or higher)
+- npm
+- Java JDK 17 or higher
 - Maven
-- MySQL database
+- A PostgreSQL database (Neon, or local Postgres)
 
 ### Database Setup
 
-1. Create a MySQL database:
-   ```sql
-   CREATE DATABASE filesharing_db;
-   ```
+Create an empty database on [Neon](https://neon.tech) or locally. Hibernate creates the tables on startup (`ddl-auto=update`). Existing MySQL or H2 rows are not copied.
 
-2. Create a user or use root (for development):
-   ```sql
-   CREATE USER 'fileuser'@'localhost' IDENTIFIED BY 'your_password';
-   GRANT ALL PRIVILEGES ON filesharing_db.* TO 'fileuser'@'localhost';
-   FLUSH PRIVILEGES;
-   ```
+Set these environment variables before starting the backend. You can pass either a JDBC URL or Neon’s `postgresql://` URL. If the username and password are inside that URL, `DB_USER` and `DB_PASSWORD` are optional.
+
+```bash
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
+DB_USER=USER
+DB_PASSWORD=PASSWORD
+JWT_SECRET=change-me
+MAIL_USERNAME=
+MAIL_PASSWORD=
+```
+
+`DATABASE_URL` may also be a JDBC URL: `jdbc:postgresql://HOST/DB?sslmode=require`.
 
 ### Backend Setup (Spring Boot)
 
@@ -80,14 +83,9 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
    cd FileSharingSystem/backend
    ```
 
-2. Configure your database connection in `src/main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/filesharing_db
-   spring.datasource.username=your_db_username
-   spring.datasource.password=your_db_password
-   ```
+2. Point the app at Postgres with the environment variables above. Do not put a real Neon password in `application.properties`.
 
-3. Configure email settings in the same file (for sharing notifications):
+3. Configure email with `MAIL_USERNAME` and `MAIL_PASSWORD` when you want share notifications. The defaults in `application.properties` are:
    ```properties
    spring.mail.host=smtp.example.com
    spring.mail.port=587
@@ -104,8 +102,7 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
 
 5. Build and run the Spring Boot application:
    ```bash
-   mvn clean install
-   mvn spring-boot:run
+   mvn -DskipTests spring-boot:run
    ```
 
    The backend server will start on http://localhost:8080
@@ -124,7 +121,7 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
 
 3. Start the development server:
    ```bash
-   npm start
+   npm run dev
    ```
 
    The React app will start on http://localhost:3000
@@ -188,8 +185,8 @@ The FileSharingSystem employs a hybrid architecture for file storage and sharing
 ### Common Issues
 
 1. **Backend connection errors**
-   - Ensure MySQL is running
-   - Verify database credentials in application.properties
+   - Ensure the Neon or Postgres URL is set in `DATABASE_URL`
+   - Verify `DB_USER` and `DB_PASSWORD` when they are not embedded in the URL
    - Check that port 8080 is not in use
 
 2. **File upload issues**

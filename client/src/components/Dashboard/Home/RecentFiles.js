@@ -1,110 +1,84 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { FiFileText, FiImage, FiFile, FiDownload, FiMoreVertical } from 'react-icons/fi';
-import './RecentFiles.css';
+import { Download, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const RecentFiles = ({ files, isLoading }) => {
-    // Function to get file icon based on file type
-    const getFileIcon = (fileType) => {
-        if (!fileType) return <FiFile size={18} />;
-        
-        if (fileType.includes('image')) {
-            return <FiImage size={18} style={{ color: '#8b5cf6' }} />;
-        } else if (fileType.includes('pdf')) {
-            return <FiFileText size={18} style={{ color: '#ef4444' }} />;
-        } else if (fileType.includes('word') || fileType.includes('document')) {
-            return <FiFileText size={18} style={{ color: '#3b82f6' }} />;
-        } else if (fileType.includes('sheet') || fileType.includes('excel')) {
-            return <FiFileText size={18} style={{ color: '#10b981' }} />;
-        } else {
-            return <FiFile size={18} style={{ color: '#64748b' }} />;
-        }
-    };
-    
-    // Function to format file size
-    const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-    };
-    
-    // Function to format date as time ago
-    const formatDate = (dateString) => {
-        try {
-            return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-        } catch (error) {
-            return 'Invalid date';
-        }
-    };
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
-    if (isLoading) {
-        return (
-            <div className="loading-state">
-                <div className="loading-spinner"></div>
-                <span>Loading recent files...</span>
-            </div>
-        );
+  const formatDate = (dateString) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch {
+      return 'recently';
     }
-    
-    if (!files || files.length === 0) {
-        return (
-            <div className="empty-state">
-                <FiFileText className="empty-icon" size={40} />
-                <p>No files yet</p>
-                <p className="empty-subtext">Upload files to see them here</p>
-            </div>
-        );
-    }
-    
-    return (
-        <div className="recent-files">
-            <table className="files-table">
-                <thead>
-                    <tr>
-                        <th className="file-name-header">Name</th>
-                        <th className="file-size-header">Size</th>
-                        <th className="file-date-header">Modified</th>
-                        <th className="file-actions-header"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {files.map((file, index) => (
-                        <tr key={file.id || index} className="file-row">
-                            <td className="file-name-cell">
-                                <div className="file-icon">
-                                    {getFileIcon(file.fileType)}
-                                </div>
-                                <div className="file-name">
-                                    <span className="file-name-text">{file.fileName}</span>
-                                    <span className="file-owner">{file.user?.fullName || 'You'}</span>
-                                </div>
-                            </td>
-                            <td className="file-size-cell">
-                                {formatFileSize(file.fileSize)}
-                            </td>
-                            <td className="file-date-cell">
-                                {formatDate(file.uploadDate)}
-                            </td>
-                            <td className="file-actions-cell">
-                                <div className="file-actions">
-                                    <button className="file-action-button download">
-                                        <FiDownload size={16} />
-                                    </button>
-                                    <button className="file-action-button more">
-                                        <FiMoreVertical size={16} />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+  };
+
+  const handleDownload = (file) => {
+    const url = `http://localhost:8080/api/files/download/${file.id}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.originalName || file.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePreview = (file) => {
+    window.open(`http://localhost:8080/api/files/download/${file.id}`, '_blank');
+  };
+
+  return (
+    <div className="card bg-base-100 border border-base-300">
+      <div className="card-body p-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
+          <h2 className="text-sm font-medium">Recent files</h2>
+          <Link to="/dashboard/files" className="link link-hover text-sm">View all</Link>
         </div>
-    );
+        {isLoading ? (
+          <p className="p-4 text-sm text-base-content/60">Loading</p>
+        ) : !files || files.length === 0 ? (
+          <p className="p-4 text-sm text-base-content/60">No files yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th className="hidden sm:table-cell">Size</th>
+                  <th className="hidden md:table-cell">Uploaded</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {files.map((file, idx) => (
+                  <tr key={file.id || idx}>
+                    <td className="max-w-[220px] truncate">{file.originalName || file.fileName}</td>
+                    <td className="hidden sm:table-cell">{formatFileSize(file.fileSize)}</td>
+                    <td className="hidden md:table-cell">{formatDate(file.uploadDate)}</td>
+                    <td className="text-right">
+                      <button type="button" className="btn btn-ghost btn-xs btn-square" onClick={() => handlePreview(file)} title="View">
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button type="button" className="btn btn-ghost btn-xs btn-square" onClick={() => handleDownload(file)} title="Download">
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default RecentFiles; 
+export default RecentFiles;
